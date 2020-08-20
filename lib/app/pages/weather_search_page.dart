@@ -13,7 +13,26 @@ class WeatherSearchPage extends StatelessWidget {
         body: Container(
           padding: EdgeInsets.symmetric(vertical: 16.0),
           alignment: Alignment.center,
-          child: buildInitialInput(),
+          child: BlocConsumer<WeatherCubit, WeatherState>(
+            listener: (context, state) {
+              if (state is WeatherError) {
+                Scaffold.of(context)
+                    .showSnackBar(SnackBar(content: Text('state.message')));
+              }
+            },
+            builder: (context, state) {
+              if (state is WeatherInitial) {
+                return buildInitialInput();
+              } else if (state is WeatherLoading) {
+                return buildLoading();
+              } else if (state is WeatherLoaded) {
+                return buildColumnWithData(state.weather);
+              } else {
+                //create state erroeweather
+                return buildLoading();
+              }
+            },
+          ),
         ));
   }
 
@@ -61,4 +80,7 @@ class CityInputField extends StatelessWidget {
   }
 }
 
-void submitCityName(BuildContext context, String cityName) {}
+void submitCityName(BuildContext context, String cityName) {
+  final weatherCubit = context.bloc<WeatherCubit>();
+  weatherCubit.getWeather(cityName);
+}
